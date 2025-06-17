@@ -1,12 +1,4 @@
-// src/components/auth/LoginForm.tsx
 "use client";
-
-/**
- * Component: LoginForm
- * - Validate input (username, password) bằng Yup/react-hook-form
- * - Gửi POST request tới API /api/auth/login
- * - Hiển thị lỗi, xử lý UX khi đăng nhập
- */
 
 import { useState } from "react";
 import Link from "next/link";
@@ -17,7 +9,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import axios from "axios";
 
-// 1. Định nghĩa schema validate bằng Yup cho UX realtime phía client
+// Define validation schema with Yup
 const loginSchema = yup.object({
   username: yup.string().required("Username is required"),
   password: yup.string().required("Password is required"),
@@ -26,10 +18,10 @@ const loginSchema = yup.object({
 type LoginFormValues = yup.InferType<typeof loginSchema>;
 
 export default function LoginForm() {
-  // State để lưu lỗi (hiển thị lên UI)
+  // State to track error messages
   const [error, setError] = useState<string | null>(null);
 
-  // Khởi tạo react-hook-form với yupResolver để validate form
+  // Setup react-hook-form with yup validation
   const {
     register,
     handleSubmit,
@@ -38,44 +30,62 @@ export default function LoginForm() {
   } = useForm<LoginFormValues>({
     resolver: yupResolver(loginSchema),
   });
-
-  /**
-   * Hàm submit form login
-   * - Gửi dữ liệu tới API login
-   * - Nếu login thành công: lưu user, chuyển trang
-   * - Nếu thất bại: hiển thị lỗi
-   */
+  
+  // Handle form submission
   const onLogin = async (values: LoginFormValues) => {
-    setError(null); // Reset lỗi cũ
+    setError(null);
     try {
-      // Gửi request tới API login (trả về cookie httpOnly nếu thành công)
+      // Make API call to login endpoint using axios
+      // This sends the username and password to our backend API
       const response = await axios.post("/api/auth/login", values);
-
+      
+      // Process successful response
       if (response.data.success) {
-        // Lưu user vào localStorage (nếu cần)
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        reset(); // Reset lại form sau khi login thành công
-        window.location.href = "/"; // Redirect về trang chủ (hoặc trang profile tuỳ ý)
+        console.log("Login successful:", response.data.user);
+        
+        // Store user data in localStorage or state management solution
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // The JWT token is stored in HTTP-only cookie by the API
+        // So we don't need to handle it here in the client code
+        
+        // Optional: Reset form after successful submission
+        reset();
+        
+        // Redirect to home page after successful login
+        window.location.href = "/";
       } else {
-        // Lỗi này hiếm gặp (đa số error sẽ vào catch)
+        // This branch should rarely execute as errors typically trigger the catch block
         setError(response.data.error || "Login failed");
       }
     } catch (err) {
-      // Bắt lỗi chi tiết với axios
-      if (axios.isAxiosError(err)) {
-        const statusCode = err.response?.status;
-        const errorMessage = err.response?.data?.error;
+      console.error("Login error:", err);
 
-        if (statusCode === 401) {
-          setError(errorMessage || "Invalid username or password");
-        } else if (statusCode === 404) {
-          setError(errorMessage || "User not found");
-        } else if (statusCode === 400) {
-          setError(errorMessage || "Invalid input data");
-        } else if (statusCode === 500) {
-          setError("Server error. Please try again later.");
+      // Detailed error handling with axios
+      if (axios.isAxiosError(err)) {
+        if (err.response) {
+          // The request was made and the server responded with a status code
+          // outside the 2xx range
+          const statusCode = err.response?.status;
+          const errorMessage = err.response?.data?.error;
+
+          if (statusCode === 401) {
+            setError(errorMessage || "Invalid username or password");
+          } else if (statusCode === 404) {
+            setError(errorMessage || "User not found");
+          } else if (statusCode === 400) {
+            setError(errorMessage || "Invalid input data");
+          } else if (statusCode === 500) {
+            setError("Server error. Please try again later.");
+          } else {
+            setError(errorMessage || "Login failed");
+          }
+        } else if (err.request) {
+          // The request was made but no response was received
+          setError("Network error. Please check your connection.");
         } else {
-          setError(errorMessage || "Login failed");
+          // Something happened in setting up the request
+          setError(err.message || "Something went wrong. Please try again.");
         }
       } else {
         setError("Something went wrong. Please try again.");
@@ -86,7 +96,6 @@ export default function LoginForm() {
   return (
     <>
       <form className="space-y-4" onSubmit={handleSubmit(onLogin)} noValidate>
-        {/* Username field */}
         <FormInput
           id="username"
           label="Username"
@@ -97,7 +106,6 @@ export default function LoginForm() {
           error={errors.username?.message}
         />
 
-        {/* Password field */}
         <FormInput
           id="password"
           label="Password"
@@ -108,17 +116,14 @@ export default function LoginForm() {
           error={errors.password?.message}
         />
 
-        {/* Hiển thị lỗi nếu có */}
         {error && (
           <div className="text-red-500 text-sm font-semibold">{error}</div>
         )}
 
-        {/* Nút submit: disable khi đang gửi */}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Logging in..." : "Log In"}
         </Button>
       </form>
-      {/* Link chuyển sang signup */}
       <div className="text-center text-sm">
         <p className="text-gray-400">
           Don&apos;t have an account yet?{" "}

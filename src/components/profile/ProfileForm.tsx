@@ -1,3 +1,6 @@
+// src/components/profile/ProfileForm.tsx
+"use client";
+
 import React, { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
@@ -32,12 +35,13 @@ export default function ProfileForm({
         </div>
       )}
 
+      {/* BỔ SUNG value và onChange */}
       <FormInput
         id="displayName"
         label="Display Name"
         type="text"
-        value={profileData.displayName || ""}
         placeholder="Your display name"
+        value={profileData.displayName || ""}
         onChange={(e) => handleChange("displayName", e.target.value)}
       />
 
@@ -65,8 +69,8 @@ export default function ProfileForm({
           id="github"
           label="GitHub URL"
           type="url"
-          value={profileData.socialLinks?.github || ""}
           placeholder="https://github.com/yourusername"
+          value={profileData.socialLinks?.github || ""}
           onChange={(e) => handleChange("socialLinks.github", e.target.value)}
         />
 
@@ -74,8 +78,8 @@ export default function ProfileForm({
           id="twitter"
           label="Twitter URL"
           type="url"
-          value={profileData.socialLinks?.twitter || ""}
           placeholder="https://twitter.com/yourusername"
+          value={profileData.socialLinks?.twitter || ""}
           onChange={(e) => handleChange("socialLinks.twitter", e.target.value)}
         />
 
@@ -102,6 +106,7 @@ export default function ProfileForm({
         <Button
           type="submit"
           className={isSaving ? "opacity-70 cursor-not-allowed" : ""}
+          disabled={isSaving}
         >
           {isSaving ? "Saving..." : "Save Changes"}
         </Button>

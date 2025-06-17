@@ -1,9 +1,91 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
+  // State to track if user is logged in
+  const [user, setUser] = useState<{
+    userId: string;
+    username: string;
+    email: string;
+  } | null>(null);
+
+  // Check if user is logged in on component mount
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        localStorage.removeItem("user");
+      }
+    }
+  }, []);
+
+  // Function to handle logout
+  const handleLogout = async () => {
+    try {
+      // In a real app, you would call an API to invalidate the token
+      // For example: await axios.post('/api/auth/logout');
+
+      // For now, just clear local storage
+      localStorage.removeItem("user");
+      setUser(null);
+
+      // Show success message - in a real app you might use a toast library
+      alert("You have been logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Error during logout. Please try again.");
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
+    <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      {/* Auth status banner */}
+      <div className="w-full flex justify-center">
+        <div className="bg-[#1e1e1e] text-white rounded-lg p-4 max-w-4xl w-full mb-6 flex justify-between items-center">
+          {user ? (
+            <>
+              <span className="text-lg">
+                Welcome, <span className="font-bold">{user.username}</span>!
+              </span>
+              <div className="flex gap-4">
+                <Link
+                  href={`/profile/${user.userId}`}
+                  className="text-blue-400 hover:underline"
+                >
+                  View Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-red-400 hover:underline"
+                >
+                  Logout
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <span className="text-lg">Welcome, Guest!</span>
+              <div className="flex gap-4">
+                <Link href="/login" className="text-blue-400 hover:underline">
+                  Login
+                </Link>
+                <Link href="/signup" className="text-green-400 hover:underline">
+                  Sign Up
+                </Link>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      <main className="flex flex-col gap-[32px] items-center">
         <Image
           className="dark:invert"
           src="/next.svg"
@@ -14,14 +96,14 @@ export default function Home() {
         />
         <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
           <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
+            {user ? (
+              <>You are successfully logged in!</>
+            ) : (
+              <>Please login to access your account.</>
+            )}
           </li>
           <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
+            Navigate to see your profile and edit your information.
           </li>
         </ol>
 
